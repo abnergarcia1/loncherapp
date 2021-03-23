@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: loncherapp-api-gateway
+  name: loncherapp-api-gateway
+  namespace: loncherapp-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loncherapp-api-gateway
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: loncherapp-api-gateway
+    spec:
+      containers:
+        - env:
+            - name: ACCESS_SECRET
+              value: ""
+            - name: GATEWAY_PORT
+              value: "8081"
+            - name: REDIS_DSN
+              value: "redis-master.default.svc:6379"
+            - name: REDIS_PASSWORD
+              value: ""
+            - name: REFRESH_SECRET
+              value: "mcmvmkmsdnfsdmfdsjf"
+            - name: USER_SERVICE_HOST
+              value: "loncherapp-users-service.loncherapp-core.svc:7510"
+          image:  us-west-1.amazonaws.com/loncherapp-api-gateway:0.3.0
+          imagePullPolicy: Always
+          name: loncherapp-api-gateway
+          ports:
+            - containerPort: 8081
+              name: http
+              protocol: TCP
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: loncherapp-core
+  name: loncherapp-api-gateway
+  labels:
+    app: loncherapp-api-gateway
+spec:
+  ports:
+    - port: 8081
+      protocol: TCP
+  selector:
+    app: loncherapp-api-gateway

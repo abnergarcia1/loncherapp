@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: loncherapp-users-service
+  name: loncherapp-users-service
+  namespace: loncherapp-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loncherapp-users-service
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: loncherapp-users-service
+    spec:
+      containers:
+        - env:
+            - name: LONCHERAPP_DB_CONNECTION
+              value: "()/loncherapp?parseTime=true"
+          image:  .us-west-1.amazonaws.com/loncherapp-user-service:latest
+          imagePullPolicy: Always
+          name: loncherapp-users-service
+          ports:
+            - containerPort: 7510
+              name: http
+              protocol: TCP
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: loncherapp-core
+  name: loncherapp-users-service
+  labels:
+    app: loncherapp-users-service
+spec:
+  ports:
+    - port: 7510
+      protocol: TCP
+  selector:
+    app: loncherapp-users-service
+
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: loncherapp-users-service
+  namespace: loncherapp-core
+spec:
+  ports:
+    - port: 7510
+      targetPort: 7510
+      protocol: TCP
+      name: http2
+  selector:
+    app: loncherapp-users-service

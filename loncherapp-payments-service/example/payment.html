@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- Ensures optimal rendering on mobile devices. -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" /> <!-- Optimal Internet Explorer compatibility -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AVkrs8SQlBin5HSeTb2PWI1W3rOsbQkXPTsaGVvw4nq3YWqm6HPpAqQ6k6zLQLCC4pghZuEe07KPwyVE" ></script>
+</head>
+<body>
+
+<div id="smart-button-container">
+    <div style="text-align: center;">
+        <div id="paypal-button-container"></div>
+    </div>
+</div>
+
+<script>
+        paypal.Buttons({
+            style: {
+                shape: 'rect',
+                color: 'blue',
+                layout: 'vertical',
+                label: 'paypal',
+
+            },
+
+            createOrder: function() {
+                return fetch('http://localhost:8080/v1/payments/paypal/profiles/1/orders', {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Origin':'http://localhost:8080'
+                    },
+                }).then(function(res) {
+
+                    return res.json()
+
+                }).then(function(data) {
+                    console.log(data);
+                    return data.id; // Use the key sent by your server's response, ex. 'id' or 'token'
+                });
+            },
+
+            onApprove: function(data) {
+                return fetch('http://localhost:8080/v1/payments/paypal/profiles/1/orders/'+data.orderID+'/capture', {
+                    method:'post',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                }).then(function(res) {
+                    return res.json();
+                }).then(function(details) {
+                    alert('Transaction funds captured from ' + details.payer_given_name);
+                })
+            },
+
+            onError: function(err) {
+                console.log(err);
+            }
+        }).render('#paypal-button-container');
+
+
+</script>
+</body>
+</html>
